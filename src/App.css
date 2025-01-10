@@ -1,0 +1,448 @@
+.bd {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  scroll-behavior: smooth;
+}
+
+/* input:focus+label{
+  transform: translateY(-25px);
+  color: #0051ff;
+} */
+
+body.light-mode {
+  background-color: #ffffff;
+  color: #000000;
+}
+
+body.dark-mode {
+  background-color: #121212;
+  color: #f5f5f5;
+}
+
+.container {
+  max-width: 600px;
+  height: 100%;
+  margin: auto;
+  margin-top: auto;
+  padding: 20px;
+  text-align: center;
+  background-color: rgba(232, 232, 232, 0.752);
+  border-radius: 15px;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+  transition: background-color 0.3s, color 0.3s, box-shadow 0.3s;
+}
+
+body.dark-mode .container {
+  background-color: rgba(60, 60, 60, 0.9);
+  box-shadow: 2px 2px 1px rgba(30, 30, 30, 0.9);
+}
+
+.toggle-theme-button {
+  margin: 10px auto;
+  padding: 10px 20px;
+  font-size: 16px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #007bff;
+  color: #ffffff;
+  box-shadow: 2px 2px 1px #01438a;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+body.dark-mode .toggle-theme-button {
+  background-color: #505050;
+  color: #ffffff;
+  box-shadow: 2px 2px 1px rgba(20, 20, 20, 0.9);
+}
+
+.toggle-theme-button:hover {
+  background-color: #0056b3;
+}
+
+body.dark-mode .toggle-theme-button:hover {
+  background-color: #383838;
+}
+
+.heading {
+  position: sticky;
+  top: 0;
+  background-color: rgba(232, 232, 232, 0.752); 
+  color: #007bff;
+  padding: 0px 10px 10px 10px;
+  margin: auto;
+  width: fit-content;
+  text-decoration: underline;
+  text-decoration-style: double;
+  text-decoration-color: #006fe5;
+  text-align: center;
+  font-size: 34px;
+  font-family: 'Times New Roman', Times, serif;
+  text-shadow: 3px 0.5px 0px #6c757d;
+}
+
+body.dark-mode .heading {
+  color: #9ecbff;
+  background: rgba(60, 60, 60, 0.9);
+  padding-bottom: 10px;
+  text-shadow: 3px 0.5px 0px rgba(255, 255, 255, 0.1);
+}
+
+.subheading {
+  color: #007bff;
+}
+
+.input-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.task-input {
+  padding: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+}
+
+body.dark-mode .task-input {
+  background-color: #202020;
+  color: #f5f5f5;
+  border-color: #505050;
+}
+
+.task-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  box-shadow: 2px 2px 1px #01438a;
+}
+
+.task-button:hover {
+  background-color: #0056b3;
+}
+
+body.dark-mode .task-button {
+  background-color: #202020;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+}
+
+body.dark-mode .task-button:hover {
+  background-color: #505050;
+}
+
+.task-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 20px;
+}
+
+.task-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #d8d8d8;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+}
+
+body.dark-mode .task-item {
+  background-color: #3d3c3c;
+  border-color: #505050;
+}
+
+.task-text {
+  flex: 1;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+}
+
+.task-text:hover {
+  color: #007bff;
+}
+
+body.dark-mode .task-text {
+  color: #e0e0e0;
+}
+
+.task-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-button,
+.delete-button {
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.edit-button {
+  background-color: #ffc107;
+  color: white;
+}
+
+.edit-button:hover {
+  background-color: #e0a800;
+}
+
+.delete-button {
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #c82333;
+}
+
+.completed-task {
+  background-color: #e0ffe0;
+}
+
+body.dark-mode .completed-task {
+  background-color: #305030;
+}
+
+.completion-button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.mark-complete {
+  background-color: #28a745;
+  color: white;
+}
+
+.mark-complete:hover {
+  background-color: #24973d;
+}
+
+body.dark-mode .mark-complete {
+  background-color: #305030;
+}
+
+.mark-incomplete {
+  background-color: #ffc107;
+  color: white;
+}
+
+.mark-incomplete:hover {
+  background-color: #e0a800;
+}
+
+.deadline-input {
+  padding: 10px;
+  width: 100%;
+  max-width: 300px;
+  margin-right: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+}
+
+body.dark-mode .deadline-input {
+  background-color: #202020;
+  color: #f5f5f5;
+  border-color: #505050;
+}
+
+
+.deadline-timer {
+  margin-left: 10px;
+  font-size: 0.9rem;
+  color: #6c757d;
+}
+
+body.dark-mode .deadline-timer, .task-text {
+  color: #2c2a2a;
+}
+
+.search-container {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.search-input {
+  padding: 10px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  box-shadow: 2px 2px 1px rgb(119, 160, 160);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+body.dark-mode .search-input {
+  background-color: #202020;
+  color: #f5f5f5;
+  border-color: #505050;
+}
+
+@media (max-width: 600px) {
+  .input-container {
+    flex-direction: column;
+  }
+
+  .task-input {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+
+  .task-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .task-actions {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+}
+
+.logout-button {
+  padding: 10px;
+  margin: 10px 0;
+  font-size: 1rem;
+  background-color: #dc3545;
+  box-shadow: 2px 2px 1px rgba(138, 10, 10, 0.651);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+.logout-button:hover {
+  background-color: #c82333;
+}
+
+.error-message {
+  color: red;
+  font-size: 0.9rem;
+}
+
+.auth-container {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.auth-input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.auth-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.auth-button,
+.toggle-auth-button {
+  padding: 10px 20px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 4px;
+  background-color: #007bff;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.auth-button:hover,
+.toggle-auth-button:hover {
+  background-color: #0056b3;
+}
+
+.toggle-auth-button {
+  background-color: #f0f0f0;
+  color: #007bff;
+  border: 1px solid #ccc;
+}
+
+.toggle-auth-button:hover {
+  background-color: #007bff;
+  color: white;
+}
+
+.auth-button:focus,
+.toggle-auth-button:focus {
+  outline: none;
+}
+
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+button {
+  cursor: pointer;
+}
+
+.input-container {
+  display: flex;
+  justify-content: space-between;
+}
+
+input[type="text"],
+input[type="datetime-local"] {
+  padding: 10px;
+  font-size: 1rem;
+  margin-right: 10px;
+  flex: 1;
+}
+
+.task-button {
+  padding: 10px;
+  background-color: #4CAF50;
+  color: white;
+  font-size: 1rem;
+}
+
+.dark-mode {
+  background-color: #333;
+  color: #f0f0f0;
+}
+
+.dark-mode .task-button {
+  background-color: #5cb85c;
+}
+
+.dark-mode .toggle-theme-button {
+  background-color: #f0f0f0;
+  color: #333;
+}
