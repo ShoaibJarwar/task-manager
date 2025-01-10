@@ -1,6 +1,6 @@
 {
   "name": "task-manager",
-  "homepage": "https://ShoaibJarwar.github.io/todoList",
+  "homepage": "https://ShoaibJarwar.github.io/task-manager",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
