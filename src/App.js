@@ -1,9 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./App.css";
+import Header from "./components/Header";
+import AuthForm from "./components/AuthForm";
+import TaskInput from "./components/TaskInput";
+import TaskList from "./components/TaskList";
+import {
+  sendDeadlineNotification,
+  sendOneHourBeforeNotification,
+  sendCompletionNotification,
+} from "./utils/notifications";
 
 function App() {
+  const inputRef = useRef(null);
+
   const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem("tasks");
+    const savedUsername = localStorage.getItem("username");
+    const savedTasks = savedUsername ? localStorage.getItem(savedUsername) : null;
     return savedTasks ? JSON.parse(savedTasks) : [];
   });
 
@@ -13,51 +24,50 @@ function App() {
   const [errorMessage, setErrorMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [timeLeft, setTimeLeft] = useState({});
-  const [darkMode, setDarkMode] = useState(() => {
-    const savedMode = localStorage.getItem("darkMode");
-    return savedMode === "true";
-  });
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem("darkMode") === "true");
 
-  const inputRef = useRef(null);
-
-  // Login-related states
-  const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const savedLogin = localStorage.getItem("isLoggedIn");
-    return savedLogin === "true";
-  });
-
+  const [isLoggedIn, setIsLoggedIn] = useState(() => localStorage.getItem("isLoggedIn") === "true");
   const [isRegistering, setIsRegistering] = useState(false);
-  const [username, setUsername] = useState(() => {
-    const savedUsername = localStorage.getItem("username");
-    return savedUsername || "";
-  });
+  const [username, setUsername] = useState(() => localStorage.getItem("username") || "");
   const [password, setPassword] = useState("");
   const [users, setUsers] = useState(() => {
     const savedUsers = localStorage.getItem("users");
     return savedUsers ? JSON.parse(savedUsers) : [];
   });
 
-  // Task notification handling
+  // Save dark mode changes
+  useEffect(() => {
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
+  // Save task list when tasks change
+  useEffect(() => {
+    if (isLoggedIn && username) {
+      localStorage.setItem(username, JSON.stringify(tasks));
+    }
+  }, [tasks, username, isLoggedIn]);
+
+  // Timer updates for countdown and notifications
   useEffect(() => {
     const interval = setInterval(() => {
-      const updatedTimeLeft = tasks.reduce((acc, task) => {
-        acc[task.id] = calculateTimeLeft(task.deadline);
+      const updated = tasks.reduce((acc, task) => {
+        const time = calculateTimeLeft(task.deadline);
+        acc[task.id] = time;
 
-        if (calculateTimeLeft(task.deadline) === "1h 0m 0s" && !task.notified) {
+        if (time === "1h 0m 0s" && !task.notified) {
           sendOneHourBeforeNotification(task);
           markAsNotified(task.id);
         }
 
-        if (calculateTimeLeft(task.deadline) === "Time's up!" && !task.notified) {
+        if (time === "Time's up!" && !task.notified) {
           sendDeadlineNotification(task);
           markAsNotified(task.id);
         }
 
         return acc;
       }, {});
-      setTimeLeft(updatedTimeLeft);
+      setTimeLeft(updated);
     }, 1000);
-
     return () => clearInterval(interval);
   }, [tasks]);
 
@@ -65,138 +75,74 @@ function App() {
     const now = new Date();
     const deadlineDate = new Date(deadline);
     const diff = deadlineDate - now;
-
     if (diff <= 0) return "Time's up!";
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-    return `${hours}h ${minutes}m ${seconds}s`;
+    const h = Math.floor(diff / (1000 * 60 * 60));
+    const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    const s = Math.floor((diff % (1000 * 60)) / 1000);
+    return `${h}h ${m}m ${s}s`;
   };
 
-  const sendDeadlineNotification = (task) => {
-    if (Notification.permission === "granted") {
-      new Notification("Task Deadline Reached", {
-        body: `Your task "${task.text}" is now overdue!`,
-      });
-    }
-  };
-
-  const sendOneHourBeforeNotification = (task) => {
-    if (Notification.permission === "granted") {
-      new Notification("Task Deadline Approaching", {
-        body: `Your task "${task.text}" is due in one hour!`,
-      });
-    }
-  };
-
-  const markAsNotified = (taskId) => {
-    setTasks((prevTasks) =>
-      prevTasks.map((task) =>
-        task.id === taskId ? { ...task, notified: true } : task
-      )
+  const markAsNotified = (id) => {
+    setTasks((prev) =>
+      prev.map((task) => (task.id === id ? { ...task, notified: true } : task))
     );
   };
 
-  // User authentication functions
   const handleRegister = () => {
-    if (!username || !password) {
-      alert("Please enter a valid username and password.");
-      return;
-    }
+    if (!username || !password) return alert("Enter valid username & password.");
+    if (users.find((u) => u.username === username)) return alert("Username already exists.");
 
-    if (users.find((user) => user.username === username)) {
-      alert("Username already exists. Please choose another.");
-      return;
-    }
-
-    const newUsers = [...users, { username, password }];
-    setUsers(newUsers);
-    localStorage.setItem("users", JSON.stringify(newUsers));
-    alert("Registration successful! Please log in.");
+    const updatedUsers = [...users, { username, password }];
+    setUsers(updatedUsers);
+    localStorage.setItem("users", JSON.stringify(updatedUsers));
+    alert("Registration successful!");
     setIsRegistering(false);
   };
 
   const handleLogin = () => {
-    const user = users.find(
-      (user) => user.username === username && user.password === password
-    );
-
+    const user = users.find((u) => u.username === username && u.password === password);
     if (user) {
       setIsLoggedIn(true);
       localStorage.setItem("isLoggedIn", "true");
       localStorage.setItem("username", username);
-      localStorage.setItem("tasks", JSON.stringify(tasks)); // Save tasks
+      const savedTasks = localStorage.getItem(username);
+      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
     } else {
-      alert("Invalid username or password.");
+      alert("Invalid credentials");
     }
   };
 
   const handleLogout = () => {
-    // Save tasks to localStorage before logging out
-    if (isLoggedIn && username) {
-      localStorage.setItem(username, JSON.stringify(tasks));
-    }
-
-    // Log the user out
+    localStorage.setItem(username, JSON.stringify(tasks));
     setIsLoggedIn(false);
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("username");
-    localStorage.removeItem("tasks");
   };
 
-  useEffect(() => {
-    if (isLoggedIn && username) {
-      // Load tasks from localStorage for the logged-in user
-      const savedTasks = localStorage.getItem(username);
-      setTasks(savedTasks ? JSON.parse(savedTasks) : []);
-    }
-  }, [isLoggedIn, username]);
-
-  // Task management functions
   const handleAddTask = () => {
-    if (taskInput.trim() && deadlineInput) {
-      if (editingTaskId !== null) {
-        const currentTask = tasks.find((task) => task.id === editingTaskId);
+    if (!taskInput.trim() || !deadlineInput) {
+      setErrorMessage("Both fields required");
+      return;
+    }
 
-        if (currentTask.text === taskInput && currentTask.deadline === deadlineInput) {
-          setEditingTaskId(null);
-          setTaskInput("");
-          setDeadlineInput("");
-          setErrorMessage("");
-          return;
-        }
+    const isDuplicate = tasks.some(
+      (task) =>
+        task.text.trim().toLowerCase() === taskInput.trim().toLowerCase() &&
+        task.id !== editingTaskId
+    );
 
-        const isDuplicate = tasks.some(
-          (task) =>
-            task.text.toLowerCase() === taskInput.toLowerCase().trim() &&
-            task.id !== editingTaskId
-        );
+    if (isDuplicate) {
+      setErrorMessage("Task already exists!");
+      return;
+    }
 
-        if (isDuplicate) {
-          setErrorMessage("Task already exists!");
-          return;
-        }
-
-        setTasks(
-          tasks.map((task) =>
-            task.id === editingTaskId
-              ? { ...task, text: taskInput, deadline: deadlineInput, notified: false }
-              : task
-          )
-        );
-        setEditingTaskId(null);
-      } else {
-        const isDuplicate = tasks.some(
-          (task) => task.text.toLowerCase() === taskInput.toLowerCase().trim()
-        );
-
-        if (isDuplicate) {
-          setErrorMessage("Task already exists!");
-          return;
-        }
-
-        setTasks([
+    const updatedTasks = editingTaskId
+      ? tasks.map((task) =>
+          task.id === editingTaskId
+            ? { ...task, text: taskInput, deadline: deadlineInput, notified: false }
+            : task
+        )
+      : [
           ...tasks,
           {
             id: Date.now(),
@@ -205,24 +151,13 @@ function App() {
             deadline: deadlineInput,
             notified: false,
           },
-        ]);
-      }
+        ];
 
-      setTaskInput("");
-      setDeadlineInput("");
-      setErrorMessage("");
-    }
-  };
-
-  const handleDeleteTask = (taskId) => {
-    const taskToDelete = tasks.find((task) => task.id === taskId);
-    const confirmation = window.confirm(
-      `Are you sure you want to delete the task: "${taskToDelete.text}"?`
-    );
-  
-    if (confirmation) {
-      setTasks(tasks.filter((task) => task.id !== taskId));
-    }
+    setTasks(updatedTasks);
+    setTaskInput("");
+    setDeadlineInput("");
+    setEditingTaskId(null);
+    setErrorMessage("");
   };
 
   const handleEditTask = (task) => {
@@ -232,174 +167,74 @@ function App() {
     setErrorMessage("");
   };
 
-  const toggleCompletion = (taskId) => {
-    setTasks(
-      tasks.map((task) =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
+  const handleDeleteTask = (id) => {
+    const task = tasks.find((t) => t.id === id);
+    if (!window.confirm(`Delete "${task.text}"?`)) return;
+    const updated = tasks.filter((t) => t.id !== id);
+    setTasks(updated);
+  };
+
+  const toggleCompletion = (id) => {
+    const updated = tasks.map((task) =>
+      task.id === id ? { ...task, completed: !task.completed } : task
     );
-
-    const task = tasks.find((task) => task.id === taskId);
-    if (task && !task.completed) {
-      sendCompletionNotification(task);
-    }
-  };
-
-  const sendCompletionNotification = (task) => {
-    if (Notification.permission === "granted") {
-      new Notification("Task Completed", {
-        body: `You've marked "${task.text}" as complete.`,
-      });
-    }
-  };
-
-  const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
-      handleAddTask();
-    }
+    setTasks(updated);
+    const task = tasks.find((t) => t.id === id);
+    if (task && !task.completed) sendCompletionNotification(task);
   };
 
   const filteredTasks = tasks.filter((task) =>
     task.text.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // If not logged in, show login/register page
   if (!isLoggedIn) {
     return (
-      <div className="auth-container">
-        <h1 className="heading">Task Manager</h1>
-        <h2 className="subheading">{isRegistering ? "Register" : "Login"}</h2>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="auth-input"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="auth-input"
-        />
-        {isRegistering ? (
-          <button onClick={handleRegister} className="auth-button">
-            Register
-          </button>
-        ) : (
-          <button onClick={handleLogin} className="auth-button">
-            Login
-          </button>
-        )}
-        <button
-          onClick={() => setIsRegistering((prev) => !prev)}
-          className="toggle-auth-button"
-        >
-          {isRegistering
-            ? "Already have an account? Login"
-            : "Don't have an account? Register"}
-        </button>
-      </div>
+      <AuthForm
+        isRegistering={isRegistering}
+        setIsRegistering={setIsRegistering}
+        username={username}
+        setUsername={setUsername}
+        password={password}
+        setPassword={setPassword}
+        handleLogin={handleLogin}
+        handleRegister={handleRegister}
+        darkMode={darkMode}
+      />
     );
   }
 
   return (
     <div className={`app-container ${darkMode ? "dark-mode" : "light-mode"}`}>
       <div className="container">
-        <h1 className="heading">Task Manager</h1>
+        <Header
+          title="Task Manager"
+          onLogout={handleLogout}
+          darkMode={darkMode}
+          setDarkMode={setDarkMode}
+          username={username}
+        />
 
-        <button
-          onClick={handleLogout}
-          className="logout-button"
-        >
-          Logout
-        </button>
+        <TaskInput
+          taskInput={taskInput}
+          setTaskInput={setTaskInput}
+          deadlineInput={deadlineInput}
+          setDeadlineInput={setDeadlineInput}
+          handleAddTask={handleAddTask}
+          editingTaskId={editingTaskId}
+          inputRef={inputRef}
+          errorMessage={errorMessage}
+          searchQuery={searchQuery}
+          setSearchQuery={setSearchQuery}
+        />
 
-        <button
-          className="toggle-theme-button"
-          onClick={() => {
-            setDarkMode((prev) => {
-              const newMode = !prev;
-              localStorage.setItem("darkMode", newMode);
-              return newMode;
-            });
-          }}
-        >
-          {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-        </button>
-
-        <div className="search-container">
-          <input
-            type="text"
-            placeholder="Search tasks..."
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
-        <div className="input-container">
-          <input
-            type="text"
-            value={taskInput}
-            onChange={(e) => setTaskInput(e.target.value)}
-            placeholder="Add a task"
-            className="task-input"
-            onKeyDown={handleKeyPress}
-            ref={inputRef}
-          />
-          <input
-            type="datetime-local"
-            value={deadlineInput}
-            onChange={(e) => setDeadlineInput(e.target.value)}
-            className="deadline-input"
-          />
-          <button onClick={handleAddTask} className="task-button">
-            {editingTaskId !== null ? "Save" : "Add"}
-          </button>
-        </div>
-
-        {errorMessage && <p className="error-message">{errorMessage}</p>}
-
-        <ul className="task-list">
-          {filteredTasks.map((task) => (
-            <li
-              key={task.id}
-              className={`task-item ${task.completed ? "completed-task" : ""}`}
-            >
-              <span
-                className="task-text"
-                style={{ textDecoration: task.completed ? "line-through" : "none" }}
-              >
-                {task.text}
-              </span>
-              <span className="deadline-timer">
-                {timeLeft[task.id] || calculateTimeLeft(task.deadline)}
-              </span>
-              <div className="task-actions">
-                <button
-                  onClick={() => toggleCompletion(task.id)}
-                  className={`completion-button ${task.completed ? "mark-incomplete" : "mark-complete"}`}
-                >
-                  {task.completed ? "Mark Incomplete" : "Mark Complete"}
-                </button>
-                <button
-                  onClick={() => handleEditTask(task)}
-                  className="edit-button"
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDeleteTask(task.id)}
-                  className="delete-button"
-                >
-                  Delete
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <TaskList
+          tasks={filteredTasks}
+          timeLeft={timeLeft}
+          calculateTimeLeft={calculateTimeLeft}
+          toggleCompletion={toggleCompletion}
+          handleEditTask={handleEditTask}
+          handleDeleteTask={handleDeleteTask}
+        />
       </div>
     </div>
   );
