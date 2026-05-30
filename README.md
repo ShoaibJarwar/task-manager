@@ -7,7 +7,6 @@ A simple and efficient Task Manager web application built with React. This appli
 🔗 **GitHub Pages Deployment:**  
 https://shoaibjarwar.github.io/task-manager/
 
-> Replace the above URL with your actual GitHub Pages deployment link
 
 ---
 
