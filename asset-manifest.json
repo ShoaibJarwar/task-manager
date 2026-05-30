@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/task-manager/static/css/main.e664d8b7.css",
+    "main.js": "/task-manager/static/js/main.22868154.js",
+    "index.html": "/task-manager/index.html",
+    "main.e664d8b7.css.map": "/task-manager/static/css/main.e664d8b7.css.map",
+    "main.22868154.js.map": "/task-manager/static/js/main.22868154.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.e664d8b7.css",
+    "static/js/main.22868154.js"
+  ]
+}
